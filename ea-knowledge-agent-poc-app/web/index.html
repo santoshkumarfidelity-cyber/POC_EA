@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EA / ATLAS — Knowledge Agent POC</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<svg id="motif" aria-hidden="true"></svg>
+<nav id="rail" aria-label="Primary">
+  <div class="brand">EA<span>/</span>ATLAS</div>
+  <div class="brand-sub">Knowledge Agent</div>
+  <button class="tab active" data-page="ask">Ask</button>
+  <button class="tab" data-page="discover">Discover</button>
+  <button class="tab" data-page="contribute">Contribute</button>
+  <button class="tab" data-page="govern">Govern</button>
+  <button class="tab" data-page="reports">Reports</button>
+  <div class="rail-foot">POC concept<br>Confidential draft</div>
+</nav>
+
+<header id="topbar">
+  <span class="badge badge-demo">Synthetic demo data</span>
+  <span id="int-claude" class="badge">Local synthesis</span>
+  <span id="int-sp" class="badge">SharePoint mock</span>
+  <label class="persona-label" for="persona">Persona</label>
+  <select id="persona" aria-label="Persona selector"></select>
+</header>
+
+<main id="main">
+  <section id="page-ask" class="page active">
+    <h1>Ask the governed corpus</h1>
+    <p class="lede">Answers are grounded only in current, approved content
+      you are permitted to see — and cited.</p>
+    <div id="chips"></div>
+    <div class="askbar">
+      <input id="q" type="text" autocomplete="off"
+             placeholder="Ask about strategy, standards, templates…">
+      <button id="ask-btn">Ask</button>
+    </div>
+    <div id="transcript" aria-live="polite"></div>
+  </section>
+
+  <section id="page-discover" class="page">
+    <h1>Discover</h1>
+    <div class="filters">
+      <input id="dq" type="text" placeholder="Search title or content…">
+      <select id="dstatus">
+        <option value="">Permitted active content (default)</option>
+        <option value="APPROVED">Approved only</option>
+        <option value="REVIEW">In review</option>
+        <option value="DRAFT">Drafts</option>
+        <option value="SUPERSEDED">Superseded</option>
+        <option value="ARCHIVED">Archived</option>
+      </select>
+      <select id="daudience">
+        <option value="">All audiences</option>
+        <option value="INTERNAL">Internal</option>
+        <option value="EXTERNAL">External</option>
+      </select>
+      <select id="dsort">
+        <option value="uploaded_desc">Newest uploaded</option>
+        <option value="updated_desc">Recently updated</option>
+        <option value="title_asc">Title A–Z</option>
+        <option value="uploaded_asc">Oldest uploaded</option>
+      </select>
+    </div>
+    <div id="tagrow" class="tagrow"></div>
+    <div id="results" class="grid"></div>
+  </section>
+
+  <section id="page-contribute" class="page">
+    <h1>Contribute</h1>
+    <p class="lede">Upload a file or paste content with complete metadata.
+      New artifacts always start in <strong>DRAFT</strong>. Demo extraction
+      supports TXT/MD/DOCX/PPTX; PDF and other formats register metadata
+      only (production parser pending).</p>
+    <form id="contrib" class="form">
+      <div class="frow">
+        <label>Title<input name="title" required></label>
+        <label>Owner<input name="owner" required></label>
+        <label>Version<input name="version" required placeholder="1.0"></label>
+      </div>
+      <div class="frow">
+        <label>Segment<input name="segment" required
+                           placeholder="INSURANCE"></label>
+        <label>Domain<input name="domain" required
+                          placeholder="DATA"></label>
+        <label>Content type<input name="content_type" required
+                                placeholder="PATTERN"></label>
+      </div>
+      <div class="frow">
+        <label>Audience
+          <select name="audience"><option>INTERNAL</option>
+            <option>EXTERNAL</option></select></label>
+        <label>Review date<input name="review_date" type="date"
+                                 required></label>
+        <label>Source URL<input name="source_url" required
+              placeholder="https://example.invalid/…"></label>
+      </div>
+      <div class="frow">
+        <label>Tags (comma-separated)<input name="tags" required
+              placeholder="INSURANCE, PATTERN, APPROVED"></label>
+        <label>Allowed groups<input name="allowed_groups" required
+              value="EA_INSURANCE"></label>
+      </div>
+      <label>Description<textarea name="description" required
+        rows="2"></textarea></label>
+      <label>Content<textarea name="content" rows="6"
+        placeholder="Paste text — or choose a file below"></textarea></label>
+      <label>File (optional)<input name="file" type="file"></label>
+      <div id="contrib-msg" class="msg"></div>
+      <button type="submit">Submit for review (creates DRAFT)</button>
+    </form>
+  </section>
+
+  <section id="page-govern" class="page">
+    <h1>Govern</h1>
+    <p class="lede" id="govern-lede"></p>
+    <div id="govern-list"></div>
+  </section>
+
+  <section id="page-reports" class="page">
+    <h1>Reports</h1>
+    <p class="lede" id="report-note"></p>
+    <div id="report-cards" class="grid"></div>
+    <div id="report-items"></div>
+  </section>
+</main>
+
+<div id="drawer" class="drawer" hidden>
+  <div class="drawer-panel">
+    <button id="drawer-close" aria-label="Close">×</button>
+    <div id="drawer-body"></div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

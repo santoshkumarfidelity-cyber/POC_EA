@@ -1,0 +1,13 @@
+[project]
+name = "ea-knowledge-agent-poc"
+version = "0.1.0"
+description = "Governed EA knowledge platform POC — stdlib backend, no dependencies"
+requires-python = ">=3.10"
+dependencies = []
+
+[build-system]
+requires = []
+build-backend = ""
+
+[tool.unittest]
+testdir = "tests"
