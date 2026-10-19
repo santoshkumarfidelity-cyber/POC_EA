@@ -7,14 +7,15 @@
 body {
   font-family:"Avenir Next", Avenir, "Segoe UI", system-ui, sans-serif;
   background:var(--ivory); color:var(--ink);
-  display:grid; grid-template-columns:200px 1fr; min-height:100vh;
+  display:grid; grid-template-columns:200px 1fr; grid-template-rows:auto 1fr;
+  min-height:100vh;
 }
 #motif { position:fixed; right:0; top:0; width:340px; height:220px;
   pointer-events:none; opacity:.35; z-index:0; }
 
 #rail { background:var(--navy); color:var(--ivory); padding:28px 18px;
   display:flex; flex-direction:column; gap:6px; position:sticky; top:0;
-  height:100vh; z-index:2; }
+  height:100vh; z-index:2; grid-column:1; grid-row:1 / span 2; }
 .brand { font-size:26px; font-weight:700; letter-spacing:.04em; }
 .brand span { color:var(--cyan); }
 .brand-sub { font-size:11px; letter-spacing:.18em; color:var(--slate);
@@ -28,7 +29,7 @@ body {
 .rail-foot { margin-top:auto; font-size:11px; color:var(--slate);
   line-height:1.5; }
 
-#topbar { grid-column:2; display:flex; align-items:center; gap:10px;
+#topbar { grid-column:2; grid-row:1; display:flex; align-items:center; gap:10px;
   padding:14px 28px; border-bottom:1px solid #ddd6c4; background:var(--ivory);
   position:sticky; top:0; z-index:2; flex-wrap:wrap; }
 .badge { font-size:11px; font-weight:700; padding:4px 12px;
@@ -41,7 +42,7 @@ body {
 #persona { font:inherit; padding:7px 10px; border:1px solid var(--slate);
   border-radius:8px; background:#fff; }
 
-#main { grid-column:2; padding:36px 40px 60px; max-width:1100px;
+#main { grid-column:2; grid-row:2; padding:36px 40px 60px; max-width:1100px;
   position:relative; z-index:1; }
 .page { display:none; animation:rise .45s ease both; }
 .page.active { display:block; }
@@ -143,7 +144,8 @@ h1 { font-size:30px; margin-bottom:8px; letter-spacing:-.01em; }
   #rail { position:static; height:auto; flex-direction:row;
     align-items:center; flex-wrap:wrap; padding:14px; }
   .brand-sub, .rail-foot { display:none; }
-  #topbar, #main { grid-column:1; }
+  body { grid-template-rows:auto; }
+  #rail, #topbar, #main { grid-column:1; grid-row:auto; }
   #main { padding:22px 18px 48px; }
   .frow { grid-template-columns:1fr; }
 }
