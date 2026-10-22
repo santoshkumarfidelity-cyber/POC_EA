@@ -69,6 +69,21 @@ function bytesToBase64(bytes) {
 /* ----------------------------------------------------------- chrome */
 async function initChrome() {
   const sel = document.getElementById("persona");
+  const integ = await api.get("/api/integrations");
+  const phase = integ.phase || 1;
+  state.phase1 = phase < 2;
+  if (phase < 2) {
+    // Phase 1: single internal viewer; hide governance/audit/quality UI.
+    document.querySelectorAll("[data-min-phase]").forEach(el => {
+      if (Number(el.dataset.minPhase) > phase) el.remove();
+    });
+    document.querySelectorAll(".page").forEach(el => {
+      if (["contribute", "govern", "reports"].some(
+          n => el.id === "page-" + n)) el.remove();
+    });
+    state.persona = "consumer";
+    localStorage.setItem("persona", "consumer");
+  }
   const { personas } = await api.get("/api/personas");
   sel.innerHTML = personas.map(p =>
     `<option value="${esc(p.id)}">${esc(p.display_name)}</option>`).join("");
@@ -79,7 +94,10 @@ async function initChrome() {
     state.conversationId = null;
     renderPage(currentPage());
   });
-  const integ = await api.get("/api/integrations");
+  if (phase < 2) {
+    sel.hidden = true;
+    document.querySelector(".persona-label").textContent = "Internal Viewer";
+  }
   const cl = document.getElementById("int-claude");
   cl.textContent = integ.claude_configured ? "Claude configured"
                                           : "Local synthesis";
@@ -185,8 +203,8 @@ async function loadArtifacts() {
   const p = new URLSearchParams({
     persona: state.persona,
     query: document.getElementById("dq").value,
-    status: document.getElementById("dstatus").value,
-    audience: document.getElementById("daudience").value,
+    status: document.getElementById("dstatus")?.value || "",
+    audience: document.getElementById("daudience")?.value || "",
     sort: document.getElementById("dsort").value,
     tags: [...state.selectedTags].join(","),
   });
@@ -233,7 +251,7 @@ async function openArtifact(id) {
     <p><a href="${esc(a.source_url)}" target="_blank"
       rel="noopener">${esc(a.source_url)}</a></p>
     <h3 style="margin-top:18px">Versions</h3>${vers}
-    <h3 style="margin-top:18px">Lifecycle history</h3>${hist}`;
+    ${state.phase1 ? "" : `<h3 style="margin-top:18px">Lifecycle history</h3>${hist}`}`;
   document.getElementById("drawer").hidden = false;
 }
 
@@ -375,13 +393,13 @@ document.getElementById("ask-btn").addEventListener("click", ask);
 document.getElementById("q").addEventListener("keydown",
   e => { if (e.key === "Enter") ask(); });
 ["dq", "dstatus", "daudience", "dsort"].forEach(id =>
-  document.getElementById(id).addEventListener("input", loadArtifacts));
+  document.getElementById(id)?.addEventListener("input", loadArtifacts));
 document.getElementById("drawer-close").addEventListener("click",
   () => document.getElementById("drawer").hidden = true);
 document.getElementById("drawer").addEventListener("click", e => {
   if (e.target.id === "drawer") e.target.hidden = true; });
 
-bindContribute();
+if (document.getElementById("contrib")) bindContribute();
 initChrome().then(() => renderAsk()).catch(e => {
   document.getElementById("main").innerHTML = `
     <section class="page active">

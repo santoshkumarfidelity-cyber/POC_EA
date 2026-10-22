@@ -14,6 +14,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from .agent import KnowledgeAgent
 from .auth import can_curate, get_persona, list_personas
 from .claude_client import ClaudeClient
+from .config import load_settings
 from .database import connect, initialize
 from .file_extraction import extract_text
 from .repository import KnowledgeRepository
@@ -55,10 +56,17 @@ def make_handler(db_path: str, web_dir: str):
 
         def _persona(self, params):
             pid = params.get("persona", ["consumer"])[0]
+            if load_settings().phase < 2:
+                pid = "consumer"  # Phase 1: internal viewer only
             try:
                 return get_persona(pid)
             except ValueError:
                 raise ApiError("bad_persona", "unknown persona", 400)
+
+        def _require_phase(self, phase):
+            if load_settings().phase < phase:
+                raise ApiError("not_available",
+                               f"not available until phase {phase}", 404)
 
         def _repo(self):
             conn = connect(db_path)
@@ -97,12 +105,21 @@ def make_handler(db_path: str, web_dir: str):
                 if path == "/api/health":
                     return self._send_json({"status": "ok"})
                 if path == "/api/personas":
+                    if load_settings().phase < 2:
+                        # Phase 1: a single internal viewer, approved
+                        # current content only.
+                        v = get_persona("consumer")
+                        return self._send_json({"personas": [
+                            {"id": v.id, "display_name": "Internal Viewer",
+                             "role": "Internal Viewer",
+                             "groups": list(v.groups)}]})
                     return self._send_json({"personas": [
                         {"id": p.id, "display_name": p.display_name,
                          "role": p.role, "groups": list(p.groups)}
                         for p in list_personas()]})
                 if path == "/api/integrations":
                     return self._send_json({
+                        "phase": load_settings().phase,
                         "claude_configured": ClaudeClient().configured,
                         "sharepoint_configured":
                             SharePointConnector().configured,
@@ -122,9 +139,11 @@ def make_handler(db_path: str, web_dir: str):
                     persona = self._persona(params)
                     return self._send_json({"tags": repo.list_tags(persona)})
                 if path == "/api/reports/quality":
+                    self._require_phase(2)
                     persona = self._persona(params)
                     return self._send_json(repo.quality_report(persona))
                 if path == "/api/audit/recent":
+                    self._require_phase(2)
                     persona = self._persona(params)
                     if not can_curate(persona):
                         raise ApiError("forbidden",
@@ -174,7 +193,10 @@ def make_handler(db_path: str, web_dir: str):
             repo, conn = self._repo()
             try:
                 if path == "/api/agent/query":
-                    persona = get_persona(body.get("persona", "consumer"))
+                    pid = body.get("persona", "consumer")
+                    if load_settings().phase < 2:
+                        pid = "consumer"  # Phase 1: internal viewer only
+                    persona = get_persona(pid)
                     answer = KnowledgeAgent(conn).ask(
                         persona, body.get("question", ""),
                         body.get("conversation_id"))
@@ -186,6 +208,7 @@ def make_handler(db_path: str, web_dir: str):
                         "citations": [c.__dict__ for c in
                                       answer.citations]})
                 if path == "/api/artifacts":
+                    self._require_phase(2)
                     persona = get_persona(body.get("persona", ""))
                     payload = dict(body)
                     payload.pop("_server_content_hash", None)
@@ -217,6 +240,7 @@ def make_handler(db_path: str, web_dir: str):
                     return self._send_json(result, status=201)
                 if path.startswith("/api/artifacts/") and \
                         path.endswith("/transition"):
+                    self._require_phase(2)
                     artifact_id = path.split("/")[3]
                     persona = get_persona(body.get("persona", ""))
                     result = repo.transition_artifact(

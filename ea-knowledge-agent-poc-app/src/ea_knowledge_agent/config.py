@@ -13,6 +13,9 @@ class Settings:
     port: int = 8765
     db_path: str = "data/poc.db"
     web_dir: str = os.path.join(_APP_ROOT, "web")
+    # Delivery phase: 1 = internal viewer (Ask + Discover, approved content
+    # only); 2 adds audit/quality; 3 adds supporting services.
+    phase: int = 1
 
     anthropic_api_key: str | None = None
     claude_model: str | None = None
@@ -31,6 +34,7 @@ def load_settings() -> Settings:
         port=int(env.get("POC_PORT", "8765")),
         db_path=env.get("POC_DB", "data/poc.db"),
         web_dir=env.get("POC_WEB_DIR") or os.path.join(_APP_ROOT, "web"),
+        phase=int(env.get("POC_PHASE", "1")),
         anthropic_api_key=env.get("ANTHROPIC_API_KEY") or None,
         claude_model=env.get("CLAUDE_MODEL") or None,
         graph_tenant_id=env.get("GRAPH_TENANT_ID") or None,

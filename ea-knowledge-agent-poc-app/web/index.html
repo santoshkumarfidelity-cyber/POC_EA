@@ -13,9 +13,9 @@
   <div class="brand-sub">Knowledge Agent</div>
   <button class="tab active" data-page="ask">Ask</button>
   <button class="tab" data-page="discover">Discover</button>
-  <button class="tab" data-page="contribute">Contribute</button>
-  <button class="tab" data-page="govern">Govern</button>
-  <button class="tab" data-page="reports">Reports</button>
+  <button class="tab" data-page="contribute" data-min-phase="2">Contribute</button>
+  <button class="tab" data-page="govern" data-min-phase="2">Govern</button>
+  <button class="tab" data-page="reports" data-min-phase="2">Reports</button>
   <div class="rail-foot">POC concept<br>Confidential draft</div>
 </nav>
 
@@ -45,7 +45,7 @@
     <h1>Discover</h1>
     <div class="filters">
       <input id="dq" type="text" placeholder="Search title or content…">
-      <select id="dstatus">
+      <select id="dstatus" data-min-phase="2">
         <option value="">Permitted active content (default)</option>
         <option value="APPROVED">Approved only</option>
         <option value="REVIEW">In review</option>
@@ -53,7 +53,7 @@
         <option value="SUPERSEDED">Superseded</option>
         <option value="ARCHIVED">Archived</option>
       </select>
-      <select id="daudience">
+      <select id="daudience" data-min-phase="2">
         <option value="">All audiences</option>
         <option value="INTERNAL">Internal</option>
         <option value="EXTERNAL">External</option>
