@@ -7,6 +7,7 @@ returned to the browser."""
 
 import json
 import re
+import ssl
 import subprocess
 import time
 import urllib.error
@@ -18,6 +19,19 @@ from .config import load_settings
 _TIMEOUT = 30
 _TOKEN_TTL = 45 * 60
 _SAFE = re.compile(r"[A-Za-z0-9_.-]+")
+
+
+def _ssl_context() -> ssl.SSLContext | None:
+    """Verify HTTPS with the operating system's own certificate checks when
+    the optional `truststore` package is installed (pip install truststore).
+    Behind a company proxy that inspects HTTPS this is what makes the
+    company's certificate trusted, as Windows itself trusts it. Without
+    truststore, Python's default checks apply. Verification is never off."""
+    try:
+        import truststore
+    except ImportError:
+        return None
+    return truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
 
 
 class VertexClient:
@@ -83,7 +97,10 @@ class VertexClient:
                      "Authorization": f"Bearer {self._access_token()}"},
             method="POST")
         try:
-            with urllib.request.urlopen(req, timeout=_TIMEOUT) as resp:
+            ctx = _ssl_context()
+            with urllib.request.urlopen(req, timeout=_TIMEOUT,
+                                        **({"context": ctx} if ctx else {})
+                                        ) as resp:
                 body = json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             raise RuntimeError(f"Vertex request failed: HTTP {exc.code} "
